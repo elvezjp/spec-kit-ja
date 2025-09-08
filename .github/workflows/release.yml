@@ -111,6 +111,18 @@ jobs:
                     echo "# $(echo "$description" | sed 's/\. .*//')"
                     echo ""
                     echo "$content"
+                    title=$(echo "$description" | sed 's/\. .*//')
+                    first_line=$(echo "$content" | head -n 1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+                    if [ "$first_line" = "$title" ] || [ "$first_line" = "$title." ] || [ "$first_line" = "# $title" ]; then
+                      echo "# $title"
+                      echo ""
+                      echo "$content" | tail -n +2 | sed "/^[[:space:]]*#*[[:space:]]*$title[[:space:]]*$/d; /^[[:space:]]*#*[[:space:]]*$title\.[[:space:]]*$/d"
+                    else
+                      filtered_content=$(echo "$content" | sed "/^[[:space:]]*#*[[:space:]]*$title[[:space:]]*$/d; /^[[:space:]]*#*[[:space:]]*$title\.[[:space:]]*$/d")
+                      echo "# $title"
+                      echo ""
+                      echo "$filtered_content"
+                    fi
                   } > "$output_dir/$name.$ext"
                   ;;
               esac
