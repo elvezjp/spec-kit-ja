@@ -11,6 +11,9 @@
     <strong>Spec-Driven Development（仕様駆動開発）の助けを借りて、組織が差別化されないコードを書くことではなくプロダクトシナリオに集中できるようにする取り組みです。</strong>
 </p>
 
+<img width="2818" height="1605" alt="image" src="https://github.com/user-attachments/assets/62f8dd0e-9865-444a-ac24-682fd7eedcbe" />
+
+
 [![Release](https://github.com/github/spec-kit/actions/workflows/release.yml/badge.svg)](https://github.com/github/spec-kit/actions/workflows/release.yml)
 
 ---
