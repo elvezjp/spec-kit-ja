@@ -142,6 +142,12 @@ Or initialize in the current directory:
 specify init --here
 ```
 
+日本語のメッセージとテンプレートを利用する場合は `--lang ja` を付けて実行します。
+
+```bash
+specify --lang ja init <project_name>
+```
+
 ![Specify CLI bootstrapping a new project in the terminal](./media/specify_cli.gif)
 
 You will be prompted to select the AI agent you are using. You can also proactively specify it directly in the terminal:
