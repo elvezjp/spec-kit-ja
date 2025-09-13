@@ -500,15 +500,18 @@ def init_git_repo(project_path: Path, quiet: bool = False) -> bool:
 
 
 def download_template_from_github(ai_assistant: str, download_dir: Path, *, verbose: bool = True, show_progress: bool = True):
-    """Download the latest template release from GitHub using HTTP requests.
+    """Download the template release from a fixed GitHub tag using HTTP requests.
     Returns (zip_path, metadata_dict)
     """
-    repo_owner = "github"
-    repo_name = "spec-kit"
+    # Fixed source: elvezjp/spec-kit-ja v0.0.29
+    repo_owner = "elvezjp"
+    repo_name = "spec-kit-ja"
+    fixed_tag = "v0.0.29"
     
     if verbose:
-        console.print("[cyan]Fetching latest release information...[/cyan]")
-    api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases/latest"
+        console.print(f"[cyan]Fetching release information for {repo_owner}/{repo_name} {fixed_tag}...[/cyan]")
+    # Use GitHub API: releases by tag endpoint
+    api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases/tags/{fixed_tag}"
     
     try:
         response = httpx.get(api_url, timeout=30, follow_redirects=True)
@@ -520,10 +523,14 @@ def download_template_from_github(ai_assistant: str, download_dir: Path, *, verb
         raise typer.Exit(1)
     
     # Find the template asset for the specified AI assistant
-    pattern = f"spec-kit-template-{ai_assistant}"
+    # Prefer original naming, but allow '-ja' suffixed variants as fallback
+    patterns = [
+        f"spec-kit-template-{ai_assistant}",
+        f"spec-kit-ja-template-{ai_assistant}",
+    ]
     matching_assets = [
         asset for asset in release_data.get("assets", [])
-        if pattern in asset["name"] and asset["name"].endswith(".zip")
+        if any(p in asset["name"] for p in patterns) and asset["name"].endswith(".zip")
     ]
     
     if not matching_assets:
