@@ -67,9 +67,11 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "prompt_continue": "Do you want to continue?",
         "ai_prompt": "Choose your AI assistant:",
         "git_not_found": "Git not found - will skip repository initialization",
+        "error_invalid_lang": "Error: Invalid language '{lang}'. Choose 'en' or 'ja'",
         "error_both_project_and_here": "Error: Cannot specify both project name and --here flag",
         "error_missing_project_or_here": "Error: Must specify either a project name or use --here flag",
         "error_invalid_ai": "Error: Invalid AI assistant '{ai}'",
+        "error_dir_exists": "Error: Directory '{project_name}' already exists",
         "tracker_title": "Initialize Specify Project",
         "step_precheck": "Check required tools",
         "step_ai_select": "Select AI assistant",
@@ -88,6 +90,20 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "next_step_cd": "1. [bold green]cd {project_name}[/bold green]",
         "next_step_update_constitution": "{step_num}. Update [bold magenta]CONSTITUTION.md[/bold magenta] with your project's non-negotiable principles",
         "selection_hint": "Use ↑/↓ to navigate, Enter to select, Esc to cancel",
+        "selection_cancelled": "Selection cancelled",
+        "selection_failed": "Selection failed.",
+        "help_usage_hint": "Run 'specify --help' for usage information",
+        "operation_cancelled": "Operation cancelled",
+        "checking_requirements": "Checking Specify requirements...",
+        "checking_internet": "Checking internet connectivity...",
+        "internet_ok": "Internet connection available",
+        "internet_ng": "No internet connection - required for downloading templates",
+        "check_connection": "Please check your internet connection",
+        "optional_tools": "Optional tools:",
+        "optional_ai_tools": "Optional AI tools:",
+        "cli_ready": "✓ Specify CLI is ready to use!",
+        "consider_git": "Consider installing git for repository management",
+        "consider_ai": "Consider installing an AI assistant for the best experience",
     },
     "ja": {
         "project_setup": "Specifyプロジェクトのセットアップ",
@@ -98,9 +114,11 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "prompt_continue": "続行しますか？",
         "ai_prompt": "AIアシスタントを選択してください:",
         "git_not_found": "Gitが見つかりません - リポジトリの初期化をスキップします",
+        "error_invalid_lang": "エラー: 無効な言語 '{lang}' です。'en' または 'ja' を指定してください",
         "error_both_project_and_here": "エラー: プロジェクト名と --here を同時に指定できません",
         "error_missing_project_or_here": "エラー: プロジェクト名を指定するか --here を使用してください",
         "error_invalid_ai": "エラー: 無効なAIアシスタント '{ai}'",
+        "error_dir_exists": "エラー: ディレクトリ '{project_name}' は既に存在します",
         "tracker_title": "Specifyプロジェクトを初期化",
         "step_precheck": "必要なツールを確認",
         "step_ai_select": "AIアシスタントの選択",
@@ -119,6 +137,20 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "next_step_cd": "1. [bold green]cd {project_name}[/bold green]",
         "next_step_update_constitution": "{step_num}. [bold magenta]CONSTITUTION.md[/bold magenta] を更新する",
         "selection_hint": "↑/↓ で移動、Enter で決定、Esc でキャンセル",
+        "selection_cancelled": "選択をキャンセルしました",
+        "selection_failed": "選択に失敗しました。",
+        "help_usage_hint": "'specify --help' で使い方を表示",
+        "operation_cancelled": "操作をキャンセルしました",
+        "checking_requirements": "Specify の要件を確認中...",
+        "checking_internet": "インターネット接続を確認中...",
+        "internet_ok": "インターネット接続があります",
+        "internet_ng": "インターネットに接続できません（テンプレートのダウンロードに必要）",
+        "check_connection": "インターネット接続を確認してください",
+        "optional_tools": "オプションのツール:",
+        "optional_ai_tools": "オプションのAIツール:",
+        "cli_ready": "✓ Specify CLI を利用できます！",
+        "consider_git": "リポジトリ管理のために git のインストールを検討してください",
+        "consider_ai": "最適な体験のためにAIアシスタントの導入を検討してください",
     },
 }
 
@@ -316,19 +348,19 @@ def select_with_arrows(options: dict, prompt_text: str = "Select an option", def
                         selected_key = option_keys[selected_index]
                         break
                     elif key == 'escape':
-                        console.print("\n[yellow]Selection cancelled[/yellow]")
+                        console.print(f"\n[yellow]{t('selection_cancelled')}[/yellow]")
                         raise typer.Exit(1)
                     
                     live.update(create_selection_panel(), refresh=True)
 
                 except KeyboardInterrupt:
-                    console.print("\n[yellow]Selection cancelled[/yellow]")
+                    console.print(f"\n[yellow]{t('selection_cancelled')}[/yellow]")
                     raise typer.Exit(1)
 
     run_selection_loop()
 
     if selected_key is None:
-        console.print("\n[red]Selection failed.[/red]")
+        console.print(f"\n[red]{t('selection_failed')}[/red]")
         raise typer.Exit(1)
 
     # Suppress explicit selection print; tracker / later logic will report consolidated status
@@ -382,11 +414,14 @@ def callback(
     global LANG
     if lang in TRANSLATIONS:
         LANG = lang
+    else:
+        console.print(f"[red]{t('error_invalid_lang', lang=lang)}[/red]")
+        raise typer.Exit(1)
     # Show banner only when no subcommand and no help flag
     # (help is handled by BannerGroup)
     if ctx.invoked_subcommand is None and "--help" not in sys.argv and "-h" not in sys.argv:
         show_banner()
-        console.print(Align.center("[dim]Run 'specify --help' for usage information[/dim]"))
+        console.print(Align.center(f"[dim]{t('help_usage_hint')}[/dim]"))
         console.print()
 
 
@@ -787,13 +822,13 @@ def init(
             # Ask for confirmation
             response = typer.confirm(t('prompt_continue'))
             if not response:
-                console.print("[yellow]Operation cancelled[/yellow]")
+                console.print(f"[yellow]{t('operation_cancelled')}[/yellow]")
                 raise typer.Exit(0)
     else:
         project_path = Path(project_name).resolve()
         # Check if project directory already exists
         if project_path.exists():
-            console.print(f"[red]Error:[/red] Directory '{project_name}' already exists")
+            console.print(f"[red]{t('error_dir_exists', project_name=project_name)}[/red]")
             raise typer.Exit(1)
     
     console.print(Panel.fit(
@@ -937,29 +972,29 @@ def init(
 def check():
     """Check that all required tools are installed."""
     show_banner()
-    console.print("[bold]Checking Specify requirements...[/bold]\n")
+    console.print(f"[bold]{t('checking_requirements')}[/bold]\n")
     
     # Check if we have internet connectivity by trying to reach GitHub API
-    console.print("[cyan]Checking internet connectivity...[/cyan]")
+    console.print(f"[cyan]{t('checking_internet')}[/cyan]")
     try:
         response = httpx.get("https://api.github.com", timeout=5, follow_redirects=True)
-        console.print("[green]✓[/green] Internet connection available")
+        console.print(f"[green]✓[/green] {t('internet_ok')}")
     except httpx.RequestError:
-        console.print("[red]✗[/red] No internet connection - required for downloading templates")
-        console.print("[yellow]Please check your internet connection[/yellow]")
+        console.print(f"[red]✗[/red] {t('internet_ng')}")
+        console.print(f"[yellow]{t('check_connection')}[/yellow]")
     
-    console.print("\n[cyan]Optional tools:[/cyan]")
+    console.print(f"\n[cyan]{t('optional_tools')}[/cyan]")
     git_ok = check_tool("git", "https://git-scm.com/downloads")
     
-    console.print("\n[cyan]Optional AI tools:[/cyan]")
+    console.print(f"\n[cyan]{t('optional_ai_tools')}[/cyan]")
     claude_ok = check_tool("claude", "Install from: https://docs.anthropic.com/en/docs/claude-code/setup")
     gemini_ok = check_tool("gemini", "Install from: https://github.com/google-gemini/gemini-cli")
     
-    console.print("\n[green]✓ Specify CLI is ready to use![/green]")
+    console.print(f"\n[green]{t('cli_ready')}[/green]")
     if not git_ok:
-        console.print("[yellow]Consider installing git for repository management[/yellow]")
+        console.print(f"[yellow]{t('consider_git')}[/yellow]")
     if not (claude_ok or gemini_ok):
-        console.print("[yellow]Consider installing an AI assistant for the best experience[/yellow]")
+        console.print(f"[yellow]{t('consider_ai')}[/yellow]")
 
 
 def main():
