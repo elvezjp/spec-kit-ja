@@ -557,17 +557,18 @@ def copy_and_extract_template_from_resources(project_path: Path, ai_assistant: s
       specify_cli/resources/assets/
         - templates/  (markdown templates and command prompts)
         - scripts/    (shell scripts common to all)
+        - [optional] memory/ (constitution and related files)
 
-    Destination branches by OS only in the target layout:
-      - templates -> project_path/templates (same for all OS)
-      - scripts   -> project_path/scripts/linux on Linux,
-                     project_path/scripts/macos on macOS,
-                     project_path/scripts/windows on Windows
+    Destination layout mirrors the release workflow package base:
+      - templates -> project_path/templates  (EXCLUDING templates/commands/*)
+      - scripts   -> project_path/scripts
+      - memory    -> project_path/memory  (if available)
     """
     from importlib.resources import files as ir_files
     res_base = ir_files("specify_cli") / "resources" / "assets"
     src_templates = res_base / "templates"
     src_scripts = res_base / "scripts"
+    src_memory = res_base / "memory"
 
     if not is_current_dir:
         project_path.mkdir(parents=True, exist_ok=True)
@@ -577,8 +578,15 @@ def copy_and_extract_template_from_resources(project_path: Path, ai_assistant: s
     elif verbose:
         console.print(f"[cyan]Copying from resources: {res_base}[/cyan]")
 
-    def copy_tree(src_path: Path, dst_path: Path):
+    def copy_tree(src_path: Path, dst_path: Path, *, exclude_subpath: Path | None = None):
         for item in src_path.rglob("*"):
+            if exclude_subpath is not None:
+                try:
+                    # Skip anything under exclude_subpath
+                    item.relative_to(exclude_subpath)
+                    continue
+                except ValueError:
+                    pass
             rel = item.relative_to(src_path)
             dest = dst_path / rel
             if item.is_dir():
@@ -588,19 +596,15 @@ def copy_and_extract_template_from_resources(project_path: Path, ai_assistant: s
                 shutil.copy2(item, dest)
 
     try:
-        # 1) Templates: same destination across OS
+        # 1) Templates: copy but exclude templates/commands/* per release packaging
         if src_templates.exists():
             dest_templates = project_path / "templates"
-            copy_tree(Path(src_templates), dest_templates)
+            commands_sub = src_templates / "commands"
+            copy_tree(Path(src_templates), dest_templates, exclude_subpath=Path(commands_sub))
 
-        # 2) Scripts: branch destination by OS
+        # 2) Scripts: copy to project_path/scripts (no OS branching to match release)
         if src_scripts.exists():
-            if sys.platform.startswith("win"):
-                dest_scripts = project_path / "scripts" / "windows"
-            elif sys.platform == "darwin":
-                dest_scripts = project_path / "scripts" / "macos"
-            else:
-                dest_scripts = project_path / "scripts" / "linux"
+            dest_scripts = project_path / "scripts"
             copy_tree(Path(src_scripts), dest_scripts)
 
             # Make .sh executable on Unix-like platforms
@@ -611,6 +615,20 @@ def copy_and_extract_template_from_resources(project_path: Path, ai_assistant: s
                         sh.chmod(mode | 0o111)
                     except Exception:
                         pass
+
+        # 3) Memory: optional copy if available in resources, else fall back to repo root
+        memory_copied = False
+        if src_memory.exists():
+            dest_memory = project_path / "memory"
+            copy_tree(Path(src_memory), dest_memory)
+            memory_copied = True
+        if not memory_copied:
+            # Fallback for local development environment (repo checkout)
+            repo_root = Path(__file__).resolve().parents[2]
+            local_memory = repo_root / "memory"
+            if local_memory.exists():
+                dest_memory = project_path / "memory"
+                copy_tree(local_memory, dest_memory)
 
         if tracker:
             tracker.complete("copy")
@@ -625,6 +643,110 @@ def copy_and_extract_template_from_resources(project_path: Path, ai_assistant: s
         raise typer.Exit(1)
 
     return project_path
+
+
+def generate_agent_commands(project_path: Path, ai_assistant: str) -> None:
+    """Generate agent-specific command files from templates/commands.
+
+    Mirrors the release workflow behavior:
+      - Claude:   write to `.claude/commands/*.md` (content only)
+      - Gemini:   write to `.gemini/commands/*.toml` with description + prompt
+      - Copilot:  write to `.github/prompts/*.prompt.md` with title + content
+    """
+    from importlib.resources import files as ir_files
+
+    res_base = ir_files("specify_cli") / "resources" / "assets"
+    src_cmds = res_base / "templates" / "commands"
+    if not src_cmds.exists():
+        return
+
+    # Determine output directory and formatting rules
+    if ai_assistant == "claude":
+        out_dir = project_path / ".claude" / "commands"
+        mode = "claude"
+    elif ai_assistant == "gemini":
+        out_dir = project_path / ".gemini" / "commands"
+        mode = "gemini"
+    elif ai_assistant == "copilot":
+        out_dir = project_path / ".github" / "prompts"
+        mode = "copilot"
+    else:
+        return
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    def parse_front_matter_and_body(text: str) -> tuple[dict, str]:
+        """Very small YAML front matter parser for 'description' only."""
+        lines = text.splitlines()
+        meta: dict[str, str] = {}
+        body_start = 0
+        if len(lines) >= 3 and lines[0].strip() == "---":
+            # find second '---'
+            for i in range(1, len(lines)):
+                if lines[i].strip() == "---":
+                    body_start = i + 1
+                    break
+            # parse between 1..i-1
+            for j in range(1, body_start - 1):
+                line = lines[j]
+                if ":" in line:
+                    k, v = line.split(":", 1)
+                    k = k.strip()
+                    v = v.strip().strip('"').strip("'")
+                    meta[k] = v
+        else:
+            body_start = 0
+        body = "\n".join(lines[body_start:]).lstrip("\n")
+        return meta, body
+
+    for entry in Path(src_cmds).glob("*.md"):
+        with open(entry, "r", encoding="utf-8") as rf:
+            raw = rf.read()
+        meta, body = parse_front_matter_and_body(raw)
+
+        if mode == "claude":
+            # Replace placeholder with $ARGUMENTS
+            content = body.replace("{ARGS}", "$ARGUMENTS")
+            out_path = out_dir / f"{entry.stem}.md"
+            out_path.write_text(content, encoding="utf-8")
+        elif mode == "gemini":
+            content = body.replace("{ARGS}", "{{args}}")
+            lines = []
+            desc = meta.get("description", "")
+            lines.append(f"description = \"{desc}\"")
+            lines.append("")
+            lines.append("prompt = \"\"\"")
+            lines.append(content)
+            lines.append("\"\"\"")
+            out_path = out_dir / f"{entry.stem}.toml"
+            out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        elif mode == "copilot":
+            content = body.replace("{ARGS}", "$ARGUMENTS")
+            desc = meta.get("description", "").split(". ")[0].strip()
+            title = f"# {desc}" if desc else "# Prompt"
+            out_lines = [title, "", content]
+            out_path = out_dir / f"{entry.stem}.prompt.md"
+            out_path.write_text("\n".join(out_lines) + "\n", encoding="utf-8")
+
+    # Optional: If Gemini, copy GEMINI.md if available in resources or repo
+    if ai_assistant == "gemini":
+        # Try packaged resources path first
+        candidates: list[Path] = []
+        try:
+            gemini_md = (ir_files("specify_cli") / "resources" / "agent_templates" / "gemini" / "GEMINI.md")
+            if gemini_md.exists():
+                # type: ignore - importlib.resources Traversable has open(); we need a local Path for uniform handling
+                tmp = project_path / "GEMINI.md"
+                with gemini_md.open("rb") as rf, open(tmp, "wb") as wf:
+                    shutil.copyfileobj(rf, wf)
+                candidates.append(tmp)
+        except Exception:
+            pass
+        if not candidates:
+            repo_root = Path(__file__).resolve().parents[2]
+            local = repo_root / "agent_templates" / "gemini" / "GEMINI.md"
+            if local.exists():
+                shutil.copy2(local, project_path / "GEMINI.md")
 
 # Backward-compatibility shims (disable network path and route to resources)
 def download_template_from_github(ai_assistant: str, download_dir: Path, *, verbose: bool = True, show_progress: bool = True):
@@ -768,6 +890,11 @@ def init(
         try:
             copy_and_extract_template_from_resources(project_path, selected_ai, here, verbose=False, tracker=tracker)
             apply_language_templates(project_path)
+
+            # Generate agent-specific commands (mirrors release workflow)
+            tracker.start("extract", "generate agent commands")
+            generate_agent_commands(project_path, selected_ai)
+            tracker.complete("extract", "commands ready")
 
             # Git step
             if not no_git:
