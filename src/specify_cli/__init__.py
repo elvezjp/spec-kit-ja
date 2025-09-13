@@ -750,22 +750,55 @@ def download_and_extract_template(project_path: Path, ai_assistant: str, is_curr
 
 
 def apply_language_templates(project_path: Path) -> None:
-    """Copy language-specific templates and README into the project."""
+    """Copy language-specific templates and README into the project.
+
+    Primary source is packaged resources so installed users get JA files.
+    Falls back to repo-root files for dev checkouts.
+    """
     if LANG != "ja":
         return
 
-    repo_root = Path(__file__).resolve().parents[2]
-    src_templates = repo_root / "templates"
     dest_templates = project_path / "templates"
     dest_templates.mkdir(parents=True, exist_ok=True)
 
-    for src in src_templates.glob("*.ja.md"):
-        dest = dest_templates / src.name.replace(".ja", "")
-        shutil.copy2(src, dest)
+    def copy_resource(src, dest: Path) -> None:
+        with src.open("rb") as rf, open(dest, "wb") as wf:
+            shutil.copyfileobj(rf, wf)
 
-    ja_readme = repo_root / "README-ja.md"
-    if ja_readme.exists():
-        shutil.copy2(ja_readme, project_path / "README.md")
+    # 1) Try packaged resources first
+    copied_any = False
+    try:
+        from importlib.resources import files as ir_files  # Python 3.11+
+
+        res_base = ir_files("specify_cli") / "resources" / "ja"
+        res_templates = res_base / "templates"
+        if res_templates.exists():
+            for src in res_templates.iterdir():
+                name = getattr(src, "name", "")
+                if name.endswith(".ja.md"):
+                    dest = dest_templates / name.replace(".ja", "")
+                    copy_resource(src, dest)
+                    copied_any = True
+
+            readme_res = res_base / "README-ja.md"
+            if readme_res.exists():
+                copy_resource(readme_res, project_path / "README.md")
+    except Exception:
+        # Ignore and fall back to repo-based copies below
+        pass
+
+    # 2) Fallback for local dev (repo checkout)
+    if not copied_any:
+        repo_root = Path(__file__).resolve().parents[2]
+        src_templates = repo_root / "templates"
+        for src in src_templates.glob("*.ja.md"):
+            dest = dest_templates / src.name.replace(".ja", "")
+            shutil.copy2(src, dest)
+            copied_any = True
+
+        ja_readme = repo_root / "README-ja.md"
+        if ja_readme.exists():
+            shutil.copy2(ja_readme, project_path / "README.md")
 
 
 @app.command()
