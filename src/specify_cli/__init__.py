@@ -495,9 +495,6 @@ def init_git_repo(project_path: Path, quiet: bool = False) -> bool:
         os.chdir(original_cwd)
 
 
-# (Removed legacy network download + extract implementation)
-
-
 def apply_language_templates(project_path: Path) -> None:
     """Copy language-specific templates and README into the project.
 
@@ -519,16 +516,14 @@ def apply_language_templates(project_path: Path) -> None:
     try:
         from importlib.resources import files as ir_files  # Python 3.11+
 
-        # New locales layout: resources/locales/<locale>
         res_base = ir_files("specify_cli") / "resources" / "locales" / "ja"
         res_templates = res_base / "templates"
         if res_templates.exists():
             for src in res_templates.iterdir():
                 name = getattr(src, "name", "")
-                if name.endswith(".md"):
-                    dest = dest_templates / name
-                    copy_resource(src, dest)
-                    copied_any = True
+                dest = dest_templates / name
+                copy_resource(src, dest)
+                copied_any = True
 
             readme_res = res_base / "README.md"
             if readme_res.exists():
@@ -966,7 +961,6 @@ def check():
     """Check that all required tools are installed."""
     show_banner()
     console.print(f"[bold]{t('checking_requirements')}[/bold]\n")
-    # No internet check required; templates are bundled in resources
 
     console.print(f"\n[cyan]{t('optional_tools')}[/cyan]")
     git_ok = check_tool("git", "https://git-scm.com/downloads")
