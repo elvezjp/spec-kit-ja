@@ -519,17 +519,18 @@ def apply_language_templates(project_path: Path) -> None:
     try:
         from importlib.resources import files as ir_files  # Python 3.11+
 
-        res_base = ir_files("specify_cli") / "resources" / "ja"
+        # New locales layout: resources/locales/<locale>
+        res_base = ir_files("specify_cli") / "resources" / "locales" / "ja"
         res_templates = res_base / "templates"
         if res_templates.exists():
             for src in res_templates.iterdir():
                 name = getattr(src, "name", "")
-                if name.endswith(".ja.md"):
-                    dest = dest_templates / name.replace(".ja", "")
+                if name.endswith(".md"):
+                    dest = dest_templates / name
                     copy_resource(src, dest)
                     copied_any = True
 
-            readme_res = res_base / "README-ja.md"
+            readme_res = res_base / "README.md"
             if readme_res.exists():
                 copy_resource(readme_res, project_path / "README.md")
     except Exception:
@@ -539,13 +540,14 @@ def apply_language_templates(project_path: Path) -> None:
     # 2) Fallback for local dev (repo checkout)
     if not copied_any:
         repo_root = Path(__file__).resolve().parents[2]
-        src_templates = repo_root / "templates"
-        for src in src_templates.glob("*.ja.md"):
-            dest = dest_templates / src.name.replace(".ja", "")
-            shutil.copy2(src, dest)
-            copied_any = True
+        src_templates = repo_root / "locales" / "ja" / "templates"
+        if src_templates.exists():
+            for src in src_templates.glob("*.md"):
+                dest = dest_templates / src.name
+                shutil.copy2(src, dest)
+                copied_any = True
 
-        ja_readme = repo_root / "README-ja.md"
+        ja_readme = repo_root / "locales" / "ja" / "README.md"
         if ja_readme.exists():
             shutil.copy2(ja_readme, project_path / "README.md")
 
@@ -554,18 +556,19 @@ def copy_and_extract_template_from_resources(project_path: Path, ai_assistant: s
     """Copy templates and scripts from bundled resources into project_path.
 
     Source is unified (no per-OS duplication) under:
-      specify_cli/resources/assets/
-        - templates/  (markdown templates and command prompts)
-        - scripts/    (shell scripts common to all)
-        - [optional] memory/ (constitution and related files)
+      specify_cli/resources/
+        - templates/           (markdown templates)
+        - templates/commands/  (command prompts for AI agents)
+        - scripts/             (shell scripts common to all)
+        - [optional] memory/   (constitution and related files)
 
     Destination layout mirrors the release workflow package base:
-      - templates -> project_path/templates  (EXCLUDING templates/commands/*)
+      - templates -> project_path/templates
       - scripts   -> project_path/scripts
       - memory    -> project_path/memory  (if available)
     """
     from importlib.resources import files as ir_files
-    res_base = ir_files("specify_cli") / "resources" / "assets"
+    res_base = ir_files("specify_cli") / "resources"
     src_templates = res_base / "templates"
     src_scripts = res_base / "scripts"
     src_memory = res_base / "memory"
@@ -574,7 +577,7 @@ def copy_and_extract_template_from_resources(project_path: Path, ai_assistant: s
         project_path.mkdir(parents=True, exist_ok=True)
 
     if tracker:
-        tracker.start("copy", "resources/assets")
+        tracker.start("copy", "resources")
     elif verbose:
         console.print(f"[cyan]Copying from resources: {res_base}[/cyan]")
 
@@ -596,7 +599,7 @@ def copy_and_extract_template_from_resources(project_path: Path, ai_assistant: s
                 shutil.copy2(item, dest)
 
     try:
-        # 1) Templates: copy but exclude templates/commands/* per release packaging
+        # 1) Templates: copy from templates into project_path/templates (excluding templates/commands)
         if src_templates.exists():
             dest_templates = project_path / "templates"
             commands_sub = src_templates / "commands"
@@ -655,7 +658,7 @@ def generate_agent_commands(project_path: Path, ai_assistant: str) -> None:
     """
     from importlib.resources import files as ir_files
 
-    res_base = ir_files("specify_cli") / "resources" / "assets"
+    res_base = ir_files("specify_cli") / "resources"
     src_cmds = res_base / "templates" / "commands"
     if not src_cmds.exists():
         return
