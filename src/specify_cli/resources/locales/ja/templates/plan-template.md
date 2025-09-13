@@ -218,3 +218,19 @@ For each technology choice:
 ## Progress Tracking
 *実行フロー中に更新されるチェックリスト*
 
+**Phase ステータス**:
+- [ ] Phase 0: Research complete (/plan command)
+- [ ] Phase 1: Design complete (/plan command)
+- [ ] Phase 2: Task planning complete (/plan command - describe approach only)
+- [ ] Phase 3: Tasks generated (/tasks command)
+- [ ] Phase 4: Implementation complete
+- [ ] Phase 5: Validation passed
+
+**Gate ステータス**:
+- [ ] Initial Constitution Check: PASS
+- [ ] Post-Design Constitution Check: PASS
+- [ ] All NEEDS CLARIFICATION resolved
+- [ ] Complexity deviations documented
+
+---
+*Based on Constitution v2.1.1 - See `/memory/constitution.md`*

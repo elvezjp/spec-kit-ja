@@ -1,16 +1,23 @@
 #!/usr/bin/env bash
+# Get paths for current feature branch without creating anything
+# Used by commands that need to find existing feature files
+
 set -e
 
-REPO_ROOT=$(git rev-parse --show-toplevel)
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-FEATURE_DIR="$REPO_ROOT/specs/$CURRENT_BRANCH"
+# Source common functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/common.sh"
 
-cat << JSON
-{
-  "REPO_ROOT": "$REPO_ROOT",
-  "BRANCH": "$CURRENT_BRANCH",
-  "FEATURE_DIR": "$FEATURE_DIR",
-  "PLAN": "$FEATURE_DIR/plan.md",
-  "TASKS": "$FEATURE_DIR/tasks.md"
-}
-JSON
+# Get all paths
+eval $(get_feature_paths)
+
+# Check if on feature branch
+check_feature_branch "$CURRENT_BRANCH" || exit 1
+
+# Output paths (don't create anything)
+echo "REPO_ROOT: $REPO_ROOT"
+echo "BRANCH: $CURRENT_BRANCH"
+echo "FEATURE_DIR: $FEATURE_DIR"
+echo "FEATURE_SPEC: $FEATURE_SPEC"
+echo "IMPL_PLAN: $IMPL_PLAN"
+echo "TASKS: $TASKS"
