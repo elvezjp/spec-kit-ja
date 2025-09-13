@@ -54,6 +54,111 @@ AI_CHOICES = {
     "gemini": "Gemini CLI"
 }
 
+# Language support
+LANG = "en"
+
+TRANSLATIONS: dict[str, dict[str, str]] = {
+    "en": {
+        "project_setup": "Specify Project Setup",
+        "initializing_here": "Initializing in current directory:",
+        "creating_new_project": "Creating new project:",
+        "warning_dir_not_empty": "Warning: Current directory is not empty ({count} items)",
+        "warning_template_overwrite": "Template files will be merged with existing content and may overwrite existing files",
+        "prompt_continue": "Do you want to continue?",
+        "ai_prompt": "Choose your AI assistant:",
+        "git_not_found": "Git not found - will skip repository initialization",
+        "error_invalid_lang": "Error: Invalid language '{lang}'. Choose 'en' or 'ja'",
+        "error_both_project_and_here": "Error: Cannot specify both project name and --here flag",
+        "error_missing_project_or_here": "Error: Must specify either a project name or use --here flag",
+        "error_invalid_ai": "Error: Invalid AI assistant '{ai}'",
+        "error_dir_exists": "Error: Directory '{project_name}' already exists",
+        "tracker_title": "Initialize Specify Project",
+        "step_precheck": "Check required tools",
+        "step_ai_select": "Select AI assistant",
+        "step_fetch": "Fetch latest release",
+        "step_download": "Download template",
+        "step_extract": "Extract template",
+        "step_zip_list": "Archive contents",
+        "step_extracted_summary": "Extraction summary",
+        "step_cleanup": "Cleanup",
+        "step_git": "Initialize git repository",
+        "step_final": "Finalize",
+        "step_flatten": "Flatten nested directory",
+        "project_ready": "Project ready.",
+        "next_steps_title": "Next steps",
+        "next_step_here": "1. You're already in the project directory!",
+        "next_step_cd": "1. [bold green]cd {project_name}[/bold green]",
+        "next_step_update_constitution": "{step_num}. Update [bold magenta]CONSTITUTION.md[/bold magenta] with your project's non-negotiable principles",
+        "selection_hint": "Use ↑/↓ to navigate, Enter to select, Esc to cancel",
+        "selection_cancelled": "Selection cancelled",
+        "selection_failed": "Selection failed.",
+        "help_usage_hint": "Run 'specify --help' for usage information",
+        "operation_cancelled": "Operation cancelled",
+        "checking_requirements": "Checking Specify requirements...",
+        "checking_internet": "Checking internet connectivity...",
+        "internet_ok": "Internet connection available",
+        "internet_ng": "No internet connection - required for downloading templates",
+        "check_connection": "Please check your internet connection",
+        "optional_tools": "Optional tools:",
+        "optional_ai_tools": "Optional AI tools:",
+        "cli_ready": "✓ Specify CLI is ready to use!",
+        "consider_git": "Consider installing git for repository management",
+        "consider_ai": "Consider installing an AI assistant for the best experience",
+    },
+    "ja": {
+        "project_setup": "Specifyプロジェクトのセットアップ",
+        "initializing_here": "現在のディレクトリに初期化:",
+        "creating_new_project": "新しいプロジェクトを作成:",
+        "warning_dir_not_empty": "警告: 現在のディレクトリは空ではありません ({count} 件)",
+        "warning_template_overwrite": "テンプレートは既存の内容とマージされ、既存ファイルを上書きする可能性があります",
+        "prompt_continue": "続行しますか？",
+        "ai_prompt": "AIアシスタントを選択してください:",
+        "git_not_found": "Gitが見つかりません - リポジトリの初期化をスキップします",
+        "error_invalid_lang": "エラー: 無効な言語 '{lang}' です。'en' または 'ja' を指定してください",
+        "error_both_project_and_here": "エラー: プロジェクト名と --here を同時に指定できません",
+        "error_missing_project_or_here": "エラー: プロジェクト名を指定するか --here を使用してください",
+        "error_invalid_ai": "エラー: 無効なAIアシスタント '{ai}'",
+        "error_dir_exists": "エラー: ディレクトリ '{project_name}' は既に存在します",
+        "tracker_title": "Specifyプロジェクトを初期化",
+        "step_precheck": "必要なツールを確認",
+        "step_ai_select": "AIアシスタントの選択",
+        "step_fetch": "最新リリースを取得",
+        "step_download": "テンプレートをダウンロード",
+        "step_extract": "テンプレートを展開",
+        "step_zip_list": "アーカイブ内容",
+        "step_extracted_summary": "展開結果",
+        "step_cleanup": "クリーンアップ",
+        "step_git": "gitリポジトリを初期化",
+        "step_final": "完了",
+        "step_flatten": "ネストされたディレクトリを平坦化",
+        "project_ready": "プロジェクトの準備ができました。",
+        "next_steps_title": "次のステップ",
+        "next_step_here": "1. すでにプロジェクトディレクトリ内にいます！",
+        "next_step_cd": "1. [bold green]cd {project_name}[/bold green]",
+        "next_step_update_constitution": "{step_num}. [bold magenta]CONSTITUTION.md[/bold magenta] を更新する",
+        "selection_hint": "↑/↓ で移動、Enter で決定、Esc でキャンセル",
+        "selection_cancelled": "選択をキャンセルしました",
+        "selection_failed": "選択に失敗しました。",
+        "help_usage_hint": "'specify --help' で使い方を表示",
+        "operation_cancelled": "操作をキャンセルしました",
+        "checking_requirements": "Specify の要件を確認中...",
+        "checking_internet": "インターネット接続を確認中...",
+        "internet_ok": "インターネット接続があります",
+        "internet_ng": "インターネットに接続できません（テンプレートのダウンロードに必要）",
+        "check_connection": "インターネット接続を確認してください",
+        "optional_tools": "オプションのツール:",
+        "optional_ai_tools": "オプションのAIツール:",
+        "cli_ready": "✓ Specify CLI を利用できます！",
+        "consider_git": "リポジトリ管理のために git のインストールを検討してください",
+        "consider_ai": "最適な体験のためにAIアシスタントの導入を検討してください",
+    },
+}
+
+
+def t(key: str, **kwargs) -> str:
+    """Return translated string for current language."""
+    return TRANSLATIONS.get(LANG, TRANSLATIONS["en"]).get(key, key).format(**kwargs)
+
 # ASCII Art Banner
 BANNER = """
 ███████╗██████╗ ███████╗ ██████╗██╗███████╗██╗   ██╗
@@ -64,7 +169,7 @@ BANNER = """
 ╚══════╝╚═╝     ╚══════╝ ╚═════╝╚═╝╚═╝        ╚═╝   
 """
 
-TAGLINE = "Spec-Driven Development Toolkit"
+TAGLINE = {"en": "Spec-Driven Development Toolkit", "ja": "仕様駆動開発ツールキット"}
 class StepTracker:
     """Track and render hierarchical steps without emojis, similar to Claude Code tree output.
     Supports live auto-refresh via an attached refresh callback.
@@ -218,7 +323,7 @@ def select_with_arrows(options: dict, prompt_text: str = "Select an option", def
                 table.add_row(" ", f"[white]{key}: {options[key]}[/white]")
         
         table.add_row("", "")
-        table.add_row("", "[dim]Use ↑/↓ to navigate, Enter to select, Esc to cancel[/dim]")
+        table.add_row("", f"[dim]{t('selection_hint')}[/dim]")
         
         return Panel(
             table,
@@ -243,19 +348,19 @@ def select_with_arrows(options: dict, prompt_text: str = "Select an option", def
                         selected_key = option_keys[selected_index]
                         break
                     elif key == 'escape':
-                        console.print("\n[yellow]Selection cancelled[/yellow]")
+                        console.print(f"\n[yellow]{t('selection_cancelled')}[/yellow]")
                         raise typer.Exit(1)
                     
                     live.update(create_selection_panel(), refresh=True)
 
                 except KeyboardInterrupt:
-                    console.print("\n[yellow]Selection cancelled[/yellow]")
+                    console.print(f"\n[yellow]{t('selection_cancelled')}[/yellow]")
                     raise typer.Exit(1)
 
     run_selection_loop()
 
     if selected_key is None:
-        console.print("\n[red]Selection failed.[/red]")
+        console.print(f"\n[red]{t('selection_failed')}[/red]")
         raise typer.Exit(1)
 
     # Suppress explicit selection print; tracker / later logic will report consolidated status
@@ -296,18 +401,27 @@ def show_banner():
         styled_banner.append(line + "\n", style=color)
     
     console.print(Align.center(styled_banner))
-    console.print(Align.center(Text(TAGLINE, style="italic bright_yellow")))
+    console.print(Align.center(Text(TAGLINE.get(LANG, TAGLINE["en"]), style="italic bright_yellow")))
     console.print()
 
 
 @app.callback()
-def callback(ctx: typer.Context):
-    """Show banner when no subcommand is provided."""
+def callback(
+    ctx: typer.Context,
+    lang: str = typer.Option("en", "--lang", "-l", help="UI language: en or ja"),
+):
+    """Set language and show banner when no subcommand is provided."""
+    global LANG
+    if lang in TRANSLATIONS:
+        LANG = lang
+    else:
+        console.print(f"[red]{t('error_invalid_lang', lang=lang)}[/red]")
+        raise typer.Exit(1)
     # Show banner only when no subcommand and no help flag
     # (help is handled by BannerGroup)
     if ctx.invoked_subcommand is None and "--help" not in sys.argv and "-h" not in sys.argv:
         show_banner()
-        console.print(Align.center("[dim]Run 'specify --help' for usage information[/dim]"))
+        console.print(Align.center(f"[dim]{t('help_usage_hint')}[/dim]"))
         console.print()
 
 
@@ -386,15 +500,18 @@ def init_git_repo(project_path: Path, quiet: bool = False) -> bool:
 
 
 def download_template_from_github(ai_assistant: str, download_dir: Path, *, verbose: bool = True, show_progress: bool = True):
-    """Download the latest template release from GitHub using HTTP requests.
+    """Download the template release from a fixed GitHub tag using HTTP requests.
     Returns (zip_path, metadata_dict)
     """
-    repo_owner = "github"
-    repo_name = "spec-kit"
+    # Fixed source: elvezjp/spec-kit-ja v0.0.29
+    repo_owner = "elvezjp"
+    repo_name = "spec-kit-ja"
+    fixed_tag = "v0.0.29"
     
     if verbose:
-        console.print("[cyan]Fetching latest release information...[/cyan]")
-    api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases/latest"
+        console.print(f"[cyan]Fetching release information for {repo_owner}/{repo_name} {fixed_tag}...[/cyan]")
+    # Use GitHub API: releases by tag endpoint
+    api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases/tags/{fixed_tag}"
     
     try:
         response = httpx.get(api_url, timeout=30, follow_redirects=True)
@@ -406,10 +523,14 @@ def download_template_from_github(ai_assistant: str, download_dir: Path, *, verb
         raise typer.Exit(1)
     
     # Find the template asset for the specified AI assistant
-    pattern = f"spec-kit-template-{ai_assistant}"
+    # Prefer original naming, but allow '-ja' suffixed variants as fallback
+    patterns = [
+        f"spec-kit-template-{ai_assistant}",
+        f"spec-kit-ja-template-{ai_assistant}",
+    ]
     matching_assets = [
         asset for asset in release_data.get("assets", [])
-        if pattern in asset["name"] and asset["name"].endswith(".zip")
+        if any(p in asset["name"] for p in patterns) and asset["name"].endswith(".zip")
     ]
     
     if not matching_assets:
@@ -550,7 +671,7 @@ def download_and_extract_template(project_path: Path, ai_assistant: str, is_curr
                     if len(extracted_items) == 1 and extracted_items[0].is_dir():
                         source_dir = extracted_items[0]
                         if tracker:
-                            tracker.add("flatten", "Flatten nested directory")
+                            tracker.add("flatten", t('step_flatten'))
                             tracker.complete("flatten")
                         elif verbose:
                             console.print(f"[cyan]Found nested directory structure[/cyan]")
@@ -603,7 +724,7 @@ def download_and_extract_template(project_path: Path, ai_assistant: str, is_curr
                     # Rename temp directory to project directory
                     shutil.move(str(temp_move_dir), str(project_path))
                     if tracker:
-                        tracker.add("flatten", "Flatten nested directory")
+                        tracker.add("flatten", t('step_flatten'))
                         tracker.complete("flatten")
                     elif verbose:
                         console.print(f"[cyan]Flattened nested directory structure[/cyan]")
@@ -631,8 +752,60 @@ def download_and_extract_template(project_path: Path, ai_assistant: str, is_curr
                 tracker.complete("cleanup")
             elif verbose:
                 console.print(f"Cleaned up: {zip_path.name}")
-    
+
     return project_path
+
+
+def apply_language_templates(project_path: Path) -> None:
+    """Copy language-specific templates and README into the project.
+
+    Primary source is packaged resources so installed users get JA files.
+    Falls back to repo-root files for dev checkouts.
+    """
+    if LANG != "ja":
+        return
+
+    dest_templates = project_path / "templates"
+    dest_templates.mkdir(parents=True, exist_ok=True)
+
+    def copy_resource(src, dest: Path) -> None:
+        with src.open("rb") as rf, open(dest, "wb") as wf:
+            shutil.copyfileobj(rf, wf)
+
+    # 1) Try packaged resources first
+    copied_any = False
+    try:
+        from importlib.resources import files as ir_files  # Python 3.11+
+
+        res_base = ir_files("specify_cli") / "resources" / "ja"
+        res_templates = res_base / "templates"
+        if res_templates.exists():
+            for src in res_templates.iterdir():
+                name = getattr(src, "name", "")
+                if name.endswith(".ja.md"):
+                    dest = dest_templates / name.replace(".ja", "")
+                    copy_resource(src, dest)
+                    copied_any = True
+
+            readme_res = res_base / "README-ja.md"
+            if readme_res.exists():
+                copy_resource(readme_res, project_path / "README.md")
+    except Exception:
+        # Ignore and fall back to repo-based copies below
+        pass
+
+    # 2) Fallback for local dev (repo checkout)
+    if not copied_any:
+        repo_root = Path(__file__).resolve().parents[2]
+        src_templates = repo_root / "templates"
+        for src in src_templates.glob("*.ja.md"):
+            dest = dest_templates / src.name.replace(".ja", "")
+            shutil.copy2(src, dest)
+            copied_any = True
+
+        ja_readme = repo_root / "README-ja.md"
+        if ja_readme.exists():
+            shutil.copy2(ja_readme, project_path / "README.md")
 
 
 @app.command()
@@ -665,14 +838,14 @@ def init(
     """
     # Show banner first
     show_banner()
-    
+
     # Validate arguments
     if here and project_name:
-        console.print("[red]Error:[/red] Cannot specify both project name and --here flag")
+        console.print(f"[red]{t('error_both_project_and_here')}[/red]")
         raise typer.Exit(1)
-    
+
     if not here and not project_name:
-        console.print("[red]Error:[/red] Must specify either a project name or use --here flag")
+        console.print(f"[red]{t('error_missing_project_or_here')}[/red]")
         raise typer.Exit(1)
     
     # Determine project directory
@@ -683,24 +856,24 @@ def init(
         # Check if current directory has any files
         existing_items = list(project_path.iterdir())
         if existing_items:
-            console.print(f"[yellow]Warning:[/yellow] Current directory is not empty ({len(existing_items)} items)")
-            console.print("[yellow]Template files will be merged with existing content and may overwrite existing files[/yellow]")
-            
+            console.print(f"[yellow]{t('warning_dir_not_empty', count=len(existing_items))}[/yellow]")
+            console.print(f"[yellow]{t('warning_template_overwrite')}[/yellow]")
+
             # Ask for confirmation
-            response = typer.confirm("Do you want to continue?")
+            response = typer.confirm(t('prompt_continue'))
             if not response:
-                console.print("[yellow]Operation cancelled[/yellow]")
+                console.print(f"[yellow]{t('operation_cancelled')}[/yellow]")
                 raise typer.Exit(0)
     else:
         project_path = Path(project_name).resolve()
         # Check if project directory already exists
         if project_path.exists():
-            console.print(f"[red]Error:[/red] Directory '{project_name}' already exists")
+            console.print(f"[red]{t('error_dir_exists', project_name=project_name)}[/red]")
             raise typer.Exit(1)
     
     console.print(Panel.fit(
-        "[bold cyan]Specify Project Setup[/bold cyan]\n"
-        f"{'Initializing in current directory:' if here else 'Creating new project:'} [green]{project_path.name}[/green]"
+        f"[bold cyan]{t('project_setup')}[/bold cyan]\n"
+        f"{t('initializing_here') if here else t('creating_new_project')} [green]{project_path.name}[/green]"
         + (f"\n[dim]Path: {project_path}[/dim]" if here else ""),
         border_style="cyan"
     ))
@@ -710,19 +883,19 @@ def init(
     if not no_git:
         git_available = check_tool("git", "https://git-scm.com/downloads")
         if not git_available:
-            console.print("[yellow]Git not found - will skip repository initialization[/yellow]")
+            console.print(f"[yellow]{t('git_not_found')}[/yellow]")
 
     # AI assistant selection
     if ai_assistant:
         if ai_assistant not in AI_CHOICES:
-            console.print(f"[red]Error:[/red] Invalid AI assistant '{ai_assistant}'. Choose from: {', '.join(AI_CHOICES.keys())}")
+            console.print(f"[red]{t('error_invalid_ai', ai=ai_assistant)}[/red] Choose from: {', '.join(AI_CHOICES.keys())}")
             raise typer.Exit(1)
         selected_ai = ai_assistant
     else:
         # Use arrow-key selection interface
         selected_ai = select_with_arrows(
-            AI_CHOICES, 
-            "Choose your AI assistant:", 
+            AI_CHOICES,
+            t('ai_prompt'),
             "copilot"
         )
     
@@ -746,31 +919,32 @@ def init(
     
     # Download and set up project
     # New tree-based progress (no emojis); include earlier substeps
-    tracker = StepTracker("Initialize Specify Project")
+    tracker = StepTracker(t('tracker_title'))
     # Flag to allow suppressing legacy headings
     sys._specify_tracker_active = True
     # Pre steps recorded as completed before live rendering
-    tracker.add("precheck", "Check required tools")
+    tracker.add("precheck", t('step_precheck'))
     tracker.complete("precheck", "ok")
-    tracker.add("ai-select", "Select AI assistant")
+    tracker.add("ai-select", t('step_ai_select'))
     tracker.complete("ai-select", f"{selected_ai}")
-    for key, label in [
-        ("fetch", "Fetch latest release"),
-        ("download", "Download template"),
-        ("extract", "Extract template"),
-        ("zip-list", "Archive contents"),
-        ("extracted-summary", "Extraction summary"),
-        ("cleanup", "Cleanup"),
-        ("git", "Initialize git repository"),
-        ("final", "Finalize")
+    for key, label_key in [
+        ("fetch", "step_fetch"),
+        ("download", "step_download"),
+        ("extract", "step_extract"),
+        ("zip-list", "step_zip_list"),
+        ("extracted-summary", "step_extracted_summary"),
+        ("cleanup", "step_cleanup"),
+        ("git", "step_git"),
+        ("final", "step_final")
     ]:
-        tracker.add(key, label)
+        tracker.add(key, t(label_key))
 
     # Use transient so live tree is replaced by the final static render (avoids duplicate output)
     with Live(tracker.render(), console=console, refresh_per_second=8, transient=True) as live:
         tracker.attach_refresh(lambda: live.update(tracker.render()))
         try:
             download_and_extract_template(project_path, selected_ai, here, verbose=False, tracker=tracker)
+            apply_language_templates(project_path)
 
             # Git step
             if not no_git:
@@ -799,15 +973,15 @@ def init(
 
     # Final static tree (ensures finished state visible after Live context ends)
     console.print(tracker.render())
-    console.print("\n[bold green]Project ready.[/bold green]")
+    console.print(f"\n[bold green]{t('project_ready')}[/bold green]")
     
     # Boxed "Next steps" section
     steps_lines = []
     if not here:
-        steps_lines.append(f"1. [bold green]cd {project_name}[/bold green]")
+        steps_lines.append(t('next_step_cd', project_name=project_name))
         step_num = 2
     else:
-        steps_lines.append("1. You're already in the project directory!")
+        steps_lines.append(t('next_step_here'))
         step_num = 2
 
     if selected_ai == "claude":
@@ -825,9 +999,9 @@ def init(
         steps_lines.append(f"{step_num}. Open in Visual Studio Code and use [bold cyan]/specify[/], [bold cyan]/plan[/], [bold cyan]/tasks[/] commands with GitHub Copilot")
 
     step_num += 1
-    steps_lines.append(f"{step_num}. Update [bold magenta]CONSTITUTION.md[/bold magenta] with your project's non-negotiable principles")
+    steps_lines.append(t('next_step_update_constitution', step_num=step_num))
 
-    steps_panel = Panel("\n".join(steps_lines), title="Next steps", border_style="cyan", padding=(1,2))
+    steps_panel = Panel("\n".join(steps_lines), title=t('next_steps_title'), border_style="cyan", padding=(1,2))
     console.print()  # blank line
     console.print(steps_panel)
     
@@ -838,29 +1012,29 @@ def init(
 def check():
     """Check that all required tools are installed."""
     show_banner()
-    console.print("[bold]Checking Specify requirements...[/bold]\n")
+    console.print(f"[bold]{t('checking_requirements')}[/bold]\n")
     
     # Check if we have internet connectivity by trying to reach GitHub API
-    console.print("[cyan]Checking internet connectivity...[/cyan]")
+    console.print(f"[cyan]{t('checking_internet')}[/cyan]")
     try:
         response = httpx.get("https://api.github.com", timeout=5, follow_redirects=True)
-        console.print("[green]✓[/green] Internet connection available")
+        console.print(f"[green]✓[/green] {t('internet_ok')}")
     except httpx.RequestError:
-        console.print("[red]✗[/red] No internet connection - required for downloading templates")
-        console.print("[yellow]Please check your internet connection[/yellow]")
+        console.print(f"[red]✗[/red] {t('internet_ng')}")
+        console.print(f"[yellow]{t('check_connection')}[/yellow]")
     
-    console.print("\n[cyan]Optional tools:[/cyan]")
+    console.print(f"\n[cyan]{t('optional_tools')}[/cyan]")
     git_ok = check_tool("git", "https://git-scm.com/downloads")
     
-    console.print("\n[cyan]Optional AI tools:[/cyan]")
+    console.print(f"\n[cyan]{t('optional_ai_tools')}[/cyan]")
     claude_ok = check_tool("claude", "Install from: https://docs.anthropic.com/en/docs/claude-code/setup")
     gemini_ok = check_tool("gemini", "Install from: https://github.com/google-gemini/gemini-cli")
     
-    console.print("\n[green]✓ Specify CLI is ready to use![/green]")
+    console.print(f"\n[green]{t('cli_ready')}[/green]")
     if not git_ok:
-        console.print("[yellow]Consider installing git for repository management[/yellow]")
+        console.print(f"[yellow]{t('consider_git')}[/yellow]")
     if not (claude_ok or gemini_ok):
-        console.print("[yellow]Consider installing an AI assistant for the best experience[/yellow]")
+        console.print(f"[yellow]{t('consider_ai')}[/yellow]")
 
 
 def main():

@@ -142,6 +142,12 @@ specify init <project_name>
 specify init --here
 ```
 
+CLIの表示やテンプレートを日本語にするには、`--lang ja` オプションを付けます。
+
+```bash
+specify --lang ja init <project_name>
+```
+
 ![Specify CLIが新プロジェクトをターミナルでブートストラップ](./media/specify_cli.gif)
 
 AIエージェントを選択するように促されます。ターミナルで直接指定も可能です：
