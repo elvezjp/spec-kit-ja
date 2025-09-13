@@ -6,7 +6,6 @@
 #     "rich",
 #     "platformdirs",
 #     "readchar",
-#     "httpx",
 # ]
 # ///
 """
@@ -33,7 +32,6 @@ from pathlib import Path
 from typing import Optional
 
 import typer
-import httpx
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -75,8 +73,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "tracker_title": "Initialize Specify Project",
         "step_precheck": "Check required tools",
         "step_ai_select": "Select AI assistant",
-        "step_fetch": "Fetch latest release",
-        "step_download": "Download template",
+        "step_copy": "Copy template",
         "step_extract": "Extract template",
         "step_zip_list": "Archive contents",
         "step_extracted_summary": "Extraction summary",
@@ -122,8 +119,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "tracker_title": "Specifyプロジェクトを初期化",
         "step_precheck": "必要なツールを確認",
         "step_ai_select": "AIアシスタントの選択",
-        "step_fetch": "最新リリースを取得",
-        "step_download": "テンプレートをダウンロード",
+        "step_copy": "テンプレートをコピー",
         "step_extract": "テンプレートを展開",
         "step_zip_list": "アーカイブ内容",
         "step_extracted_summary": "展開結果",
@@ -163,10 +159,10 @@ def t(key: str, **kwargs) -> str:
 BANNER = """
 ███████╗██████╗ ███████╗ ██████╗██╗███████╗██╗   ██╗
 ██╔════╝██╔══██╗██╔════╝██╔════╝██║██╔════╝╚██╗ ██╔╝
-███████╗██████╔╝█████╗  ██║     ██║█████╗   ╚████╔╝ 
-╚════██║██╔═══╝ ██╔══╝  ██║     ██║██╔══╝    ╚██╔╝  
-███████║██║     ███████╗╚██████╗██║██║        ██║   
-╚══════╝╚═╝     ╚══════╝ ╚═════╝╚═╝╚═╝        ╚═╝   
+███████╗██████╔╝█████╗  ██║     ██║█████╗   ╚████╔╝
+╚════██║██╔═══╝ ██╔══╝  ██║     ██║██╔══╝    ╚██╔╝
+███████║██║     ███████╗╚██████╗██║██║        ██║
+╚══════╝╚═╝     ╚══════╝ ╚═════╝╚═╝╚═╝        ╚═╝
 """
 
 TAGLINE = {"en": "Spec-Driven Development Toolkit", "ja": "仕様駆動開発ツールキット"}
@@ -261,27 +257,27 @@ class StepTracker:
 MINI_BANNER = """
 ╔═╗╔═╗╔═╗╔═╗╦╔═╗╦ ╦
 ╚═╗╠═╝║╣ ║  ║╠╣ ╚╦╝
-╚═╝╩  ╚═╝╚═╝╩╚   ╩ 
+╚═╝╩  ╚═╝╚═╝╩╚   ╩
 """
 
 def get_key():
     """Get a single keypress in a cross-platform way using readchar."""
     key = readchar.readkey()
-    
+
     # Arrow keys
     if key == readchar.key.UP:
         return 'up'
     if key == readchar.key.DOWN:
         return 'down'
-    
+
     # Enter/Return
     if key == readchar.key.ENTER:
         return 'enter'
-    
+
     # Escape
     if key == readchar.key.ESC:
         return 'escape'
-        
+
     # Ctrl+C
     if key == readchar.key.CTRL_C:
         raise KeyboardInterrupt
@@ -293,12 +289,12 @@ def get_key():
 def select_with_arrows(options: dict, prompt_text: str = "Select an option", default_key: str = None) -> str:
     """
     Interactive selection using arrow keys with Rich Live display.
-    
+
     Args:
         options: Dict with keys as option keys and values as descriptions
         prompt_text: Text to show above the options
         default_key: Default option key to start with
-        
+
     Returns:
         Selected option key
     """
@@ -307,7 +303,7 @@ def select_with_arrows(options: dict, prompt_text: str = "Select an option", def
         selected_index = option_keys.index(default_key)
     else:
         selected_index = 0
-    
+
     selected_key = None
 
     def create_selection_panel():
@@ -315,23 +311,23 @@ def select_with_arrows(options: dict, prompt_text: str = "Select an option", def
         table = Table.grid(padding=(0, 2))
         table.add_column(style="bright_cyan", justify="left", width=3)
         table.add_column(style="white", justify="left")
-        
+
         for i, key in enumerate(option_keys):
             if i == selected_index:
                 table.add_row("▶", f"[bright_cyan]{key}: {options[key]}[/bright_cyan]")
             else:
                 table.add_row(" ", f"[white]{key}: {options[key]}[/white]")
-        
+
         table.add_row("", "")
         table.add_row("", f"[dim]{t('selection_hint')}[/dim]")
-        
+
         return Panel(
             table,
             title=f"[bold]{prompt_text}[/bold]",
             border_style="cyan",
             padding=(1, 2)
         )
-    
+
     console.print()
 
     def run_selection_loop():
@@ -350,7 +346,7 @@ def select_with_arrows(options: dict, prompt_text: str = "Select an option", def
                     elif key == 'escape':
                         console.print(f"\n[yellow]{t('selection_cancelled')}[/yellow]")
                         raise typer.Exit(1)
-                    
+
                     live.update(create_selection_panel(), refresh=True)
 
                 except KeyboardInterrupt:
@@ -373,7 +369,7 @@ console = Console()
 
 class BannerGroup(TyperGroup):
     """Custom group that shows banner before help."""
-    
+
     def format_help(self, ctx, formatter):
         # Show banner before help
         show_banner()
@@ -394,12 +390,12 @@ def show_banner():
     # Create gradient effect with different colors
     banner_lines = BANNER.strip().split('\n')
     colors = ["bright_blue", "blue", "cyan", "bright_cyan", "white", "bright_white"]
-    
+
     styled_banner = Text()
     for i, line in enumerate(banner_lines):
         color = colors[i % len(colors)]
         styled_banner.append(line + "\n", style=color)
-    
+
     console.print(Align.center(styled_banner))
     console.print(Align.center(Text(TAGLINE.get(LANG, TAGLINE["en"]), style="italic bright_yellow")))
     console.print()
@@ -458,7 +454,7 @@ def is_git_repo(path: Path = None) -> bool:
     """Check if the specified path is inside a git repository."""
     if path is None:
         path = Path.cwd()
-    
+
     if not path.is_dir():
         return False
 
@@ -490,7 +486,7 @@ def init_git_repo(project_path: Path, quiet: bool = False) -> bool:
         if not quiet:
             console.print("[green]✓[/green] Git repository initialized")
         return True
-        
+
     except subprocess.CalledProcessError as e:
         if not quiet:
             console.print(f"[red]Error initializing git repository:[/red] {e}")
@@ -499,261 +495,7 @@ def init_git_repo(project_path: Path, quiet: bool = False) -> bool:
         os.chdir(original_cwd)
 
 
-def download_template_from_github(ai_assistant: str, download_dir: Path, *, verbose: bool = True, show_progress: bool = True):
-    """Download the template release from a fixed GitHub tag using HTTP requests.
-    Returns (zip_path, metadata_dict)
-    """
-    # Fixed source: elvezjp/spec-kit-ja v0.0.29
-    repo_owner = "elvezjp"
-    repo_name = "spec-kit-ja"
-    fixed_tag = "v0.0.29"
-    
-    if verbose:
-        console.print(f"[cyan]Fetching release information for {repo_owner}/{repo_name} {fixed_tag}...[/cyan]")
-    # Use GitHub API: releases by tag endpoint
-    api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases/tags/{fixed_tag}"
-    
-    try:
-        response = httpx.get(api_url, timeout=30, follow_redirects=True)
-        response.raise_for_status()
-        release_data = response.json()
-    except httpx.RequestError as e:
-        if verbose:
-            console.print(f"[red]Error fetching release information:[/red] {e}")
-        raise typer.Exit(1)
-    
-    # Find the template asset for the specified AI assistant
-    # Prefer original naming, but allow '-ja' suffixed variants as fallback
-    patterns = [
-        f"spec-kit-template-{ai_assistant}",
-        f"spec-kit-ja-template-{ai_assistant}",
-    ]
-    matching_assets = [
-        asset for asset in release_data.get("assets", [])
-        if any(p in asset["name"] for p in patterns) and asset["name"].endswith(".zip")
-    ]
-    
-    if not matching_assets:
-        if verbose:
-            console.print(f"[red]Error:[/red] No template found for AI assistant '{ai_assistant}'")
-            console.print(f"[yellow]Available assets:[/yellow]")
-            for asset in release_data.get("assets", []):
-                console.print(f"  - {asset['name']}")
-        raise typer.Exit(1)
-    
-    # Use the first matching asset
-    asset = matching_assets[0]
-    download_url = asset["browser_download_url"]
-    filename = asset["name"]
-    file_size = asset["size"]
-    
-    if verbose:
-        console.print(f"[cyan]Found template:[/cyan] {filename}")
-        console.print(f"[cyan]Size:[/cyan] {file_size:,} bytes")
-        console.print(f"[cyan]Release:[/cyan] {release_data['tag_name']}")
-    
-    # Download the file
-    zip_path = download_dir / filename
-    if verbose:
-        console.print(f"[cyan]Downloading template...[/cyan]")
-    
-    try:
-        with httpx.stream("GET", download_url, timeout=30, follow_redirects=True) as response:
-            response.raise_for_status()
-            total_size = int(response.headers.get('content-length', 0))
-            
-            with open(zip_path, 'wb') as f:
-                if total_size == 0:
-                    # No content-length header, download without progress
-                    for chunk in response.iter_bytes(chunk_size=8192):
-                        f.write(chunk)
-                else:
-                    if show_progress:
-                        # Show progress bar
-                        with Progress(
-                            SpinnerColumn(),
-                            TextColumn("[progress.description]{task.description}"),
-                            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-                            console=console,
-                        ) as progress:
-                            task = progress.add_task("Downloading...", total=total_size)
-                            downloaded = 0
-                            for chunk in response.iter_bytes(chunk_size=8192):
-                                f.write(chunk)
-                                downloaded += len(chunk)
-                                progress.update(task, completed=downloaded)
-                    else:
-                        # Silent download loop
-                        for chunk in response.iter_bytes(chunk_size=8192):
-                            f.write(chunk)
-    
-    except httpx.RequestError as e:
-        if verbose:
-            console.print(f"[red]Error downloading template:[/red] {e}")
-        if zip_path.exists():
-            zip_path.unlink()
-        raise typer.Exit(1)
-    if verbose:
-        console.print(f"Downloaded: {filename}")
-    metadata = {
-        "filename": filename,
-        "size": file_size,
-        "release": release_data["tag_name"],
-        "asset_url": download_url
-    }
-    return zip_path, metadata
-
-
-def download_and_extract_template(project_path: Path, ai_assistant: str, is_current_dir: bool = False, *, verbose: bool = True, tracker: StepTracker | None = None) -> Path:
-    """Download the latest release and extract it to create a new project.
-    Returns project_path. Uses tracker if provided (with keys: fetch, download, extract, cleanup)
-    """
-    current_dir = Path.cwd()
-    
-    # Step: fetch + download combined
-    if tracker:
-        tracker.start("fetch", "contacting GitHub API")
-    try:
-        zip_path, meta = download_template_from_github(
-            ai_assistant,
-            current_dir,
-            verbose=verbose and tracker is None,
-            show_progress=(tracker is None)
-        )
-        if tracker:
-            tracker.complete("fetch", f"release {meta['release']} ({meta['size']:,} bytes)")
-            tracker.add("download", "Download template")
-            tracker.complete("download", meta['filename'])  # already downloaded inside helper
-    except Exception as e:
-        if tracker:
-            tracker.error("fetch", str(e))
-        else:
-            if verbose:
-                console.print(f"[red]Error downloading template:[/red] {e}")
-        raise
-    
-    if tracker:
-        tracker.add("extract", "Extract template")
-        tracker.start("extract")
-    elif verbose:
-        console.print("Extracting template...")
-    
-    try:
-        # Create project directory only if not using current directory
-        if not is_current_dir:
-            project_path.mkdir(parents=True)
-        
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            # List all files in the ZIP for debugging
-            zip_contents = zip_ref.namelist()
-            if tracker:
-                tracker.start("zip-list")
-                tracker.complete("zip-list", f"{len(zip_contents)} entries")
-            elif verbose:
-                console.print(f"[cyan]ZIP contains {len(zip_contents)} items[/cyan]")
-            
-            # For current directory, extract to a temp location first
-            if is_current_dir:
-                with tempfile.TemporaryDirectory() as temp_dir:
-                    temp_path = Path(temp_dir)
-                    zip_ref.extractall(temp_path)
-                    
-                    # Check what was extracted
-                    extracted_items = list(temp_path.iterdir())
-                    if tracker:
-                        tracker.start("extracted-summary")
-                        tracker.complete("extracted-summary", f"temp {len(extracted_items)} items")
-                    elif verbose:
-                        console.print(f"[cyan]Extracted {len(extracted_items)} items to temp location[/cyan]")
-                    
-                    # Handle GitHub-style ZIP with a single root directory
-                    source_dir = temp_path
-                    if len(extracted_items) == 1 and extracted_items[0].is_dir():
-                        source_dir = extracted_items[0]
-                        if tracker:
-                            tracker.add("flatten", t('step_flatten'))
-                            tracker.complete("flatten")
-                        elif verbose:
-                            console.print(f"[cyan]Found nested directory structure[/cyan]")
-                    
-                    # Copy contents to current directory
-                    for item in source_dir.iterdir():
-                        dest_path = project_path / item.name
-                        if item.is_dir():
-                            if dest_path.exists():
-                                if verbose and not tracker:
-                                    console.print(f"[yellow]Merging directory:[/yellow] {item.name}")
-                                # Recursively copy directory contents
-                                for sub_item in item.rglob('*'):
-                                    if sub_item.is_file():
-                                        rel_path = sub_item.relative_to(item)
-                                        dest_file = dest_path / rel_path
-                                        dest_file.parent.mkdir(parents=True, exist_ok=True)
-                                        shutil.copy2(sub_item, dest_file)
-                            else:
-                                shutil.copytree(item, dest_path)
-                        else:
-                            if dest_path.exists() and verbose and not tracker:
-                                console.print(f"[yellow]Overwriting file:[/yellow] {item.name}")
-                            shutil.copy2(item, dest_path)
-                    if verbose and not tracker:
-                        console.print(f"[cyan]Template files merged into current directory[/cyan]")
-            else:
-                # Extract directly to project directory (original behavior)
-                zip_ref.extractall(project_path)
-                
-                # Check what was extracted
-                extracted_items = list(project_path.iterdir())
-                if tracker:
-                    tracker.start("extracted-summary")
-                    tracker.complete("extracted-summary", f"{len(extracted_items)} top-level items")
-                elif verbose:
-                    console.print(f"[cyan]Extracted {len(extracted_items)} items to {project_path}:[/cyan]")
-                    for item in extracted_items:
-                        console.print(f"  - {item.name} ({'dir' if item.is_dir() else 'file'})")
-                
-                # Handle GitHub-style ZIP with a single root directory
-                if len(extracted_items) == 1 and extracted_items[0].is_dir():
-                    # Move contents up one level
-                    nested_dir = extracted_items[0]
-                    temp_move_dir = project_path.parent / f"{project_path.name}_temp"
-                    # Move the nested directory contents to temp location
-                    shutil.move(str(nested_dir), str(temp_move_dir))
-                    # Remove the now-empty project directory
-                    project_path.rmdir()
-                    # Rename temp directory to project directory
-                    shutil.move(str(temp_move_dir), str(project_path))
-                    if tracker:
-                        tracker.add("flatten", t('step_flatten'))
-                        tracker.complete("flatten")
-                    elif verbose:
-                        console.print(f"[cyan]Flattened nested directory structure[/cyan]")
-                    
-    except Exception as e:
-        if tracker:
-            tracker.error("extract", str(e))
-        else:
-            if verbose:
-                console.print(f"[red]Error extracting template:[/red] {e}")
-        # Clean up project directory if created and not current directory
-        if not is_current_dir and project_path.exists():
-            shutil.rmtree(project_path)
-        raise typer.Exit(1)
-    else:
-        if tracker:
-            tracker.complete("extract")
-    finally:
-        if tracker:
-            tracker.add("cleanup", "Remove temporary archive")
-        # Clean up downloaded ZIP file
-        if zip_path.exists():
-            zip_path.unlink()
-            if tracker:
-                tracker.complete("cleanup")
-            elif verbose:
-                console.print(f"Cleaned up: {zip_path.name}")
-
-    return project_path
+# (Removed legacy network download + extract implementation)
 
 
 def apply_language_templates(project_path: Path) -> None:
@@ -808,6 +550,91 @@ def apply_language_templates(project_path: Path) -> None:
             shutil.copy2(ja_readme, project_path / "README.md")
 
 
+def copy_and_extract_template_from_resources(project_path: Path, ai_assistant: str, is_current_dir: bool = False, *, verbose: bool = True, tracker: StepTracker | None = None) -> Path:
+    """Copy templates and scripts from bundled resources into project_path.
+
+    Source is unified (no per-OS duplication) under:
+      specify_cli/resources/assets/
+        - templates/  (markdown templates and command prompts)
+        - scripts/    (shell scripts common to all)
+
+    Destination branches by OS only in the target layout:
+      - templates -> project_path/templates (same for all OS)
+      - scripts   -> project_path/scripts/linux on Linux,
+                     project_path/scripts/macos on macOS,
+                     project_path/scripts/windows on Windows
+    """
+    from importlib.resources import files as ir_files
+    res_base = ir_files("specify_cli") / "resources" / "assets"
+    src_templates = res_base / "templates"
+    src_scripts = res_base / "scripts"
+
+    if not is_current_dir:
+        project_path.mkdir(parents=True, exist_ok=True)
+
+    if tracker:
+        tracker.start("copy", "resources/assets")
+    elif verbose:
+        console.print(f"[cyan]Copying from resources: {res_base}[/cyan]")
+
+    def copy_tree(src_path: Path, dst_path: Path):
+        for item in src_path.rglob("*"):
+            rel = item.relative_to(src_path)
+            dest = dst_path / rel
+            if item.is_dir():
+                dest.mkdir(parents=True, exist_ok=True)
+            else:
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(item, dest)
+
+    try:
+        # 1) Templates: same destination across OS
+        if src_templates.exists():
+            dest_templates = project_path / "templates"
+            copy_tree(Path(src_templates), dest_templates)
+
+        # 2) Scripts: branch destination by OS
+        if src_scripts.exists():
+            if sys.platform.startswith("win"):
+                dest_scripts = project_path / "scripts" / "windows"
+            elif sys.platform == "darwin":
+                dest_scripts = project_path / "scripts" / "macos"
+            else:
+                dest_scripts = project_path / "scripts" / "linux"
+            copy_tree(Path(src_scripts), dest_scripts)
+
+            # Make .sh executable on Unix-like platforms
+            if not sys.platform.startswith("win"):
+                for sh in dest_scripts.rglob("*.sh"):
+                    try:
+                        mode = sh.stat().st_mode
+                        sh.chmod(mode | 0o111)
+                    except Exception:
+                        pass
+
+        if tracker:
+            tracker.complete("copy")
+    except Exception as e:
+        if tracker:
+            tracker.error("copy", str(e))
+        else:
+            if verbose:
+                console.print(f"[red]Error copying template:[/red] {e}")
+        if not is_current_dir and project_path.exists():
+            shutil.rmtree(project_path)
+        raise typer.Exit(1)
+
+    return project_path
+
+# Backward-compatibility shims (disable network path and route to resources)
+def download_template_from_github(ai_assistant: str, download_dir: Path, *, verbose: bool = True, show_progress: bool = True):
+    raise typer.Exit("Network downloads are disabled. Templates are bundled in resources.")
+
+
+def download_and_extract_template(project_path: Path, ai_assistant: str, is_current_dir: bool = False, *, verbose: bool = True, tracker: StepTracker | None = None) -> Path:
+    return copy_and_extract_template_from_resources(project_path, ai_assistant, is_current_dir, verbose=verbose, tracker=tracker)
+
+
 @app.command()
 def init(
     project_name: str = typer.Argument(None, help="Name for your new project directory (optional if using --here)"),
@@ -817,16 +644,16 @@ def init(
     here: bool = typer.Option(False, "--here", help="Initialize project in the current directory instead of creating a new one"),
 ):
     """
-    Initialize a new Specify project from the latest template.
-    
+    Initialize a new Specify project from the bundled template.
+
     This command will:
     1. Check that required tools are installed (git is optional)
     2. Let you choose your AI assistant (Claude Code, Gemini CLI, or GitHub Copilot)
-    3. Download the appropriate template from GitHub
-    4. Extract the template to a new project directory or current directory
+    3. Copy the appropriate template from bundled resources
+    4. Place it into a new project directory or current directory
     5. Initialize a fresh git repository (if not --no-git and no existing repo)
     6. Optionally set up AI assistant commands
-    
+
     Examples:
         specify init my-project
         specify init my-project --ai claude
@@ -847,12 +674,12 @@ def init(
     if not here and not project_name:
         console.print(f"[red]{t('error_missing_project_or_here')}[/red]")
         raise typer.Exit(1)
-    
+
     # Determine project directory
     if here:
         project_name = Path.cwd().name
         project_path = Path.cwd()
-        
+
         # Check if current directory has any files
         existing_items = list(project_path.iterdir())
         if existing_items:
@@ -870,14 +697,14 @@ def init(
         if project_path.exists():
             console.print(f"[red]{t('error_dir_exists', project_name=project_name)}[/red]")
             raise typer.Exit(1)
-    
+
     console.print(Panel.fit(
         f"[bold cyan]{t('project_setup')}[/bold cyan]\n"
         f"{t('initializing_here') if here else t('creating_new_project')} [green]{project_path.name}[/green]"
         + (f"\n[dim]Path: {project_path}[/dim]" if here else ""),
         border_style="cyan"
     ))
-    
+
     # Check git only if we might need it (not --no-git)
     git_available = True
     if not no_git:
@@ -898,7 +725,7 @@ def init(
             t('ai_prompt'),
             "copilot"
         )
-    
+
     # Check agent tools unless ignored
     if not ignore_agent_tools:
         agent_tool_missing = False
@@ -911,12 +738,12 @@ def init(
                 console.print("[red]Error:[/red] Gemini CLI is required for Gemini projects")
                 agent_tool_missing = True
         # GitHub Copilot check is not needed as it's typically available in supported IDEs
-        
+
         if agent_tool_missing:
             console.print("\n[red]Required AI tool is missing![/red]")
             console.print("[yellow]Tip:[/yellow] Use --ignore-agent-tools to skip this check")
             raise typer.Exit(1)
-    
+
     # Download and set up project
     # New tree-based progress (no emojis); include earlier substeps
     tracker = StepTracker(t('tracker_title'))
@@ -928,12 +755,8 @@ def init(
     tracker.add("ai-select", t('step_ai_select'))
     tracker.complete("ai-select", f"{selected_ai}")
     for key, label_key in [
-        ("fetch", "step_fetch"),
-        ("download", "step_download"),
+        ("copy", "step_copy"),
         ("extract", "step_extract"),
-        ("zip-list", "step_zip_list"),
-        ("extracted-summary", "step_extracted_summary"),
-        ("cleanup", "step_cleanup"),
         ("git", "step_git"),
         ("final", "step_final")
     ]:
@@ -943,7 +766,7 @@ def init(
     with Live(tracker.render(), console=console, refresh_per_second=8, transient=True) as live:
         tracker.attach_refresh(lambda: live.update(tracker.render()))
         try:
-            download_and_extract_template(project_path, selected_ai, here, verbose=False, tracker=tracker)
+            copy_and_extract_template_from_resources(project_path, selected_ai, here, verbose=False, tracker=tracker)
             apply_language_templates(project_path)
 
             # Git step
@@ -974,7 +797,7 @@ def init(
     # Final static tree (ensures finished state visible after Live context ends)
     console.print(tracker.render())
     console.print(f"\n[bold green]{t('project_ready')}[/bold green]")
-    
+
     # Boxed "Next steps" section
     steps_lines = []
     if not here:
@@ -1004,7 +827,7 @@ def init(
     steps_panel = Panel("\n".join(steps_lines), title=t('next_steps_title'), border_style="cyan", padding=(1,2))
     console.print()  # blank line
     console.print(steps_panel)
-    
+
     # Removed farewell line per user request
 
 
@@ -1013,23 +836,15 @@ def check():
     """Check that all required tools are installed."""
     show_banner()
     console.print(f"[bold]{t('checking_requirements')}[/bold]\n")
-    
-    # Check if we have internet connectivity by trying to reach GitHub API
-    console.print(f"[cyan]{t('checking_internet')}[/cyan]")
-    try:
-        response = httpx.get("https://api.github.com", timeout=5, follow_redirects=True)
-        console.print(f"[green]✓[/green] {t('internet_ok')}")
-    except httpx.RequestError:
-        console.print(f"[red]✗[/red] {t('internet_ng')}")
-        console.print(f"[yellow]{t('check_connection')}[/yellow]")
-    
+    # No internet check required; templates are bundled in resources
+
     console.print(f"\n[cyan]{t('optional_tools')}[/cyan]")
     git_ok = check_tool("git", "https://git-scm.com/downloads")
-    
+
     console.print(f"\n[cyan]{t('optional_ai_tools')}[/cyan]")
     claude_ok = check_tool("claude", "Install from: https://docs.anthropic.com/en/docs/claude-code/setup")
     gemini_ok = check_tool("gemini", "Install from: https://github.com/google-gemini/gemini-cli")
-    
+
     console.print(f"\n[green]{t('cli_ready')}[/green]")
     if not git_ok:
         console.print(f"[yellow]{t('consider_git')}[/yellow]")
